@@ -54,7 +54,8 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self updateOverlaysWithOutgoingCallInConversation: nil];
+    
+    [self updateOverlays];
 }
 
 - (BOOL)prefersStatusBarHidden
@@ -62,9 +63,9 @@
     return YES;
 }
 
-- (void)updateOverlaysWithOutgoingCallInConversation:(ZMConversation *)conversation
+- (void)updateOverlays
 {
-    [self updateActiveCallConversationWithOutgoingCallInConversation:conversation];
+    [self updateActiveCallConversation];
     [self updateVoiceChannelOverlays];
 }
 
@@ -189,13 +190,8 @@
     return nil;
 }
 
-- (void)updateActiveCallConversationWithOutgoingCallInConversation:(ZMConversation *)conversation
+- (void)updateActiveCallConversation
 {
-    if (conversation != nil) {
-        self.activeCallConversation = conversation;
-        return;
-    }
-    
     NSArray *activeCallConversations = [[WireCallCenter nonIdleCallConversationsInUserSession:[ZMUserSession sharedSession]] filterWithBlock:^BOOL(ZMConversation *conversation) {
         return conversation.voiceChannel.state == VoiceChannelV2StateOutgoingCall ||
         conversation.voiceChannel.state == VoiceChannelV2StateOutgoingCallInactive ||
@@ -213,7 +209,7 @@
 - (void)callCenterDidChangeVoiceChannelState:(VoiceChannelV2State)voiceChannelState conversation:(ZMConversation *)conversation callingProtocol:(enum CallingProtocol)callingProtocol
 {
     DDLogVoice(@"SE: Voice channel state change to %d (%@)", voiceChannelState, StringFromVoiceChannelV2State(voiceChannelState));
-    [self updateOverlaysWithOutgoingCallInConversation: voiceChannelState == VoiceChannelV2StateOutgoingCall ? conversation : nil];
+    [self updateOverlays];
 }
 
 - (void)callCenterDidFailToJoinVoiceChannelWithError:(NSError *)error conversation:(ZMConversation *)conversation
